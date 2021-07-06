@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ltc.dao.RecordsMapper">
+  <resultMap id="BaseResultMap" type="com.ltc.bean.Records">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="customer_name" jdbcType="VARCHAR" property="customerName" />
+    <result column="doctor_id" jdbcType="INTEGER" property="doctorId" />
+    <result column="cost" jdbcType="DOUBLE" property="cost" />
+    <result column="bill_id" jdbcType="BIGINT" property="billId" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="date" jdbcType="DATE" property="date" />
+  </resultMap>
+  <resultMap id="WithDoctorResultMap" type="com.ltc.bean.Records">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="customer_name" jdbcType="VARCHAR" property="customerName" />
+    <result column="doctor_id" jdbcType="INTEGER" property="doctorId" />
+    <result column="cost" jdbcType="DOUBLE" property="cost" />
+    <result column="bill_id" jdbcType="BIGINT" property="billId" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="date" jdbcType="DATE" property="date" />
+    <!-- 指定联合查询出的部门字段封装 -->
+    <association property="doctor" javaType="com.ltc.bean.Doctor">
+      <id column="id" jdbcType="INTEGER" property="id" />
+      <result column="name" jdbcType="VARCHAR" property="name" />
+      <result column="password" jdbcType="VARCHAR" property="password" />
+      <result column="duty" jdbcType="VARCHAR" property="duty" />
+      <result column="positional_title" jdbcType="VARCHAR" property="positionalTitle" />
+      <result column="clinic_time" jdbcType="VARCHAR" property="clinicTime" />
+      <result column="doctor_date" jdbcType="DATE" property="doctorDate" />
+    </association>
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, customer_name, doctor_id, cost, bill_id, remark, date
+  </sql>
+  <select id="selectByExample" parameterType="com.ltc.bean.RecordsExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from records
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from records
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <!-- 查询就诊记录时医生信息 一起显示 -->
+  <sql id="WithDoctor_Column_List">
+    e.id, e.customer_name, e.doctor_id, e.cost, e.bill_id, e.remark, e.date, d.id, d.name, d.duty, d.positional_title, clinic_time, doctor_date
+  </sql>
+  <select id="selectByExampleWithDoctor" resultMap="WithDoctorResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="WithDoctor_Column_List"/>
+    from records e
+    left join doctor d on e.`doctor_id` = d.`id`
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKeyWithDoctor" resultMap="WithDoctorResultMap">
+    select
+    <include refid="WithDoctor_Column_List"/>
+    from records e
+    left join doctor d on e.`doctor_id` = d.`id`
+    where e.id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from records
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.ltc.bean.RecordsExample">
+    delete from records
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.ltc.bean.Records">
+    insert into records (id, customer_name, doctor_id, 
+      cost, bill_id, remark, 
+      date)
+    values (#{id,jdbcType=INTEGER}, #{customerName,jdbcType=VARCHAR}, #{doctorId,jdbcType=INTEGER}, 
+      #{cost,jdbcType=DOUBLE}, #{billId,jdbcType=INTEGER}, #{remark,jdbcType=VARCHAR}, 
+      #{date,jdbcType=DATE})
+  </insert>
+  <insert id="insertSelective" parameterType="com.ltc.bean.Records">
+    insert into records
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="customerName != null">
+        customer_name,
+      </if>
+      <if test="doctorId != null">
+        doctor_id,
+      </if>
+      <if test="cost != null">
+        cost,
+      </if>
+      <if test="billId != null">
+        bill_id,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="date != null">
+        date,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="customerName != null">
+        #{customerName,jdbcType=VARCHAR},
+      </if>
+      <if test="doctorId != null">
+        #{doctorId,jdbcType=INTEGER},
+      </if>
+      <if test="cost != null">
+        #{cost,jdbcType=DOUBLE},
+      </if>
+      <if test="billId != null">
+        #{billId,jdbcType=INTEGER},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="date != null">
+        #{date,jdbcType=DATE},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.ltc.bean.RecordsExample" resultType="java.lang.Long">
+    select count(*) from records
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update records
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.customerName != null">
+        customer_name = #{record.customerName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.doctorId != null">
+        doctor_id = #{record.doctorId,jdbcType=INTEGER},
+      </if>
+      <if test="record.cost != null">
+        cost = #{record.cost,jdbcType=DOUBLE},
+      </if>
+      <if test="record.billId != null">
+        bill_id = #{record.billId,jdbcType=BIGINT},
+      </if>
+      <if test="record.remark != null">
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.date != null">
+        date = #{record.date,jdbcType=DATE},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update records
+    set id = #{record.id,jdbcType=INTEGER},
+      customer_name = #{record.customerName,jdbcType=VARCHAR},
+      doctor_id = #{record.doctorId,jdbcType=INTEGER},
+      cost = #{record.cost,jdbcType=DOUBLE},
+      bill_id = #{record.billId,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      date = #{record.date,jdbcType=DATE}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ltc.bean.Records">
+    update records
+    <set>
+      <if test="customerName != null">
+        customer_name = #{customerName,jdbcType=VARCHAR},
+      </if>
+      <if test="doctorId != null">
+        doctor_id = #{doctorId,jdbcType=INTEGER},
+      </if>
+      <if test="cost != null">
+        cost = #{cost,jdbcType=DOUBLE},
+      </if>
+      <if test="billId != null">
+        bill_id = #{billId,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="date != null">
+        date = #{date,jdbcType=DATE},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ltc.bean.Records">
+    update records
+    set customer_name = #{customerName,jdbcType=VARCHAR},
+      doctor_id = #{doctorId,jdbcType=INTEGER},
+      cost = #{cost,jdbcType=DOUBLE},
+      bill_id = #{billId,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      date = #{date,jdbcType=DATE}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
